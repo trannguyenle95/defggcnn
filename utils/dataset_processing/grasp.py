@@ -88,6 +88,33 @@ class GraspRectangles:
                     # Some files contain weird values.
                     continue
         return cls(grs)
+    @classmethod
+    def load_from_softnet_file(cls, fname):
+        """
+        Load grasp rectangles from a SoftNet dataset grasp file.
+        :param fname: Path to text file.
+        :return: GraspRectangles()
+        """
+        grs = []
+        with open(fname) as f:
+            while True:
+                # Load 4 lines at a time, corners of bounding box.
+                p0 = f.readline()
+                if not p0:
+                    break  # EOF
+                p1, p2, p3 = f.readline(), f.readline(), f.readline()
+                try:
+                    gr = np.array([
+                        _gr_text_to_no(p0),
+                        _gr_text_to_no(p1),
+                        _gr_text_to_no(p2),
+                        _gr_text_to_no(p3)
+                    ])
+                    grs.append(GraspRectangle(gr))
+                except ValueError:
+                    # Some files contain weird values.
+                    continue
+        return cls(grs)
 
     @classmethod
     def load_from_jacquard_file(cls, fname, scale=1.0):
@@ -190,8 +217,11 @@ class GraspRectangles:
         Compute mean center of all GraspRectangles
         :return: float, mean centre of all GraspRectangles
         """
-        points = [gr.points for gr in self.grs]
-        return np.mean(np.vstack(points), axis=0).astype(np.int)
+        center = np.array([0,0])
+        if len(self.grs) != 0:
+            points = [gr.points for gr in self.grs]
+            center = np.mean(np.vstack(points), axis=0).astype(np.int)
+        return center
 
 
 class GraspRectangle:

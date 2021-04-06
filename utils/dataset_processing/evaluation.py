@@ -64,6 +64,7 @@ def calculate_iou_match(grasp_q, grasp_angle, ground_truth_bbs, no_grasps=1, gra
         gt_bbs = ground_truth_bbs
     gs = detect_grasps(grasp_q, grasp_angle, width_img=grasp_width, no_grasps=no_grasps)
     for g in gs:
+        # print(g.max_iou(gt_bbs))
         if g.max_iou(gt_bbs) > 0.25:
             return True
     else:

@@ -3,7 +3,7 @@ __pycache__
 tensorboard
 output
 /data
-
+/CornelDataset
 *.pyc
-
+/Jacquard_Samples
 /.python-version

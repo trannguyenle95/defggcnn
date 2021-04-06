@@ -4,13 +4,14 @@ import torch
 import torch.utils.data
 
 import random
+from PIL import Image
 
 
 class GraspDatasetBase(torch.utils.data.Dataset):
     """
     An abstract dataset for training GG-CNNs in a common format.
     """
-    def __init__(self, output_size=300, include_depth=True, include_rgb=False, random_rotate=False,
+    def __init__(self, output_size=300, include_stiffness=True, include_depth=True, include_rgb=False, random_rotate=False,
                  random_zoom=False, input_only=False):
         """
         :param output_size: Image output size in pixels (square)
@@ -24,6 +25,7 @@ class GraspDatasetBase(torch.utils.data.Dataset):
         self.random_rotate = random_rotate
         self.random_zoom = random_zoom
         self.input_only = input_only
+        self.include_stiffness = include_stiffness
         self.include_depth = include_depth
         self.include_rgb = include_rgb
 
@@ -48,6 +50,9 @@ class GraspDatasetBase(torch.utils.data.Dataset):
     def get_rgb(self, idx, rot=0, zoom=1.0):
         raise NotImplementedError()
 
+    def get_stiffness(self, idx, rot=0, zoom=1.0):
+        raise NotImplementedError()
+
     def __getitem__(self, idx):
         if self.random_rotate:
             rotations = [0, np.pi/2, 2*np.pi/2, 3*np.pi/2]
@@ -63,6 +68,10 @@ class GraspDatasetBase(torch.utils.data.Dataset):
         # Load the depth image
         if self.include_depth:
             depth_img = self.get_depth(idx, rot, zoom_factor)
+
+        # Load the stiffness image
+        if self.include_stiffness:
+            stiffness_img = self.get_stiffness(idx, rot, zoom_factor)
 
         # Load the RGB image
         if self.include_rgb:
@@ -82,16 +91,22 @@ class GraspDatasetBase(torch.utils.data.Dataset):
                     0
                 )
             )
+        elif self.include_depth and self.include_stiffness:
+            x = self.numpy_to_torch(
+                np.concatenate(
+                    (np.expand_dims(depth_img, 0),
+                     np.expand_dims(stiffness_img, 0)),
+                    0
+                )
+            )
         elif self.include_depth:
             x = self.numpy_to_torch(depth_img)
         elif self.include_rgb:
             x = self.numpy_to_torch(rgb_img)
-
         pos = self.numpy_to_torch(pos_img)
         cos = self.numpy_to_torch(np.cos(2*ang_img))
         sin = self.numpy_to_torch(np.sin(2*ang_img))
         width = self.numpy_to_torch(width_img)
-
         return x, (pos, cos, sin, width), idx, rot, zoom_factor
 
     def __len__(self):

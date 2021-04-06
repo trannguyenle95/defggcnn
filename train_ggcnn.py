@@ -32,9 +32,10 @@ def parse_args():
     # Dataset & Data & Training
     parser.add_argument('--dataset', type=str, help='Dataset Name ("cornell" or "jaquard")')
     parser.add_argument('--dataset-path', type=str, help='Path to dataset')
+    parser.add_argument('--use-stiffness', type=int, default=1, help='Use Stiffness image for training (1/0)')
     parser.add_argument('--use-depth', type=int, default=1, help='Use Depth image for training (1/0)')
     parser.add_argument('--use-rgb', type=int, default=0, help='Use RGB image for training (0/1)')
-    parser.add_argument('--split', type=float, default=0.9, help='Fraction of data for training (remainder is validation)')
+    parser.add_argument('--split', type=float, default=0.95, help='Fraction of data for training (remainder is validation)')
     parser.add_argument('--ds-rotate', type=float, default=0.0,
                         help='Shift the start point of the dataset to use a different test/train split for cross validation.')
     parser.add_argument('--num-workers', type=int, default=8, help='Dataset workers')
@@ -102,7 +103,7 @@ def validate(net, device, val_data, batches_per_epoch):
                 s = evaluation.calculate_iou_match(q_out, ang_out,
                                                    val_data.dataset.get_gtbb(didx, rot, zoom_factor),
                                                    no_grasps=1,
-                                                   grasp_width=w_out,
+                                                   grasp_width=None,
                                                    )
 
                 if s:
@@ -159,7 +160,6 @@ def train(epoch, net, device, train_data, optimizer, batches_per_epoch, vis=Fals
             optimizer.zero_grad()
             loss.backward()
             optimizer.step()
-
             # Display the images
             if vis:
                 imgs = []
@@ -201,7 +201,7 @@ def run():
 
     train_dataset = Dataset(args.dataset_path, start=0.0, end=args.split, ds_rotate=args.ds_rotate,
                             random_rotate=True, random_zoom=True,
-                            include_depth=args.use_depth, include_rgb=args.use_rgb)
+                            include_stiffness=args.use_stiffness, include_depth=args.use_depth, include_rgb=args.use_rgb)
     train_data = torch.utils.data.DataLoader(
         train_dataset,
         batch_size=args.batch_size,
@@ -210,7 +210,7 @@ def run():
     )
     val_dataset = Dataset(args.dataset_path, start=args.split, end=1.0, ds_rotate=args.ds_rotate,
                           random_rotate=True, random_zoom=True,
-                          include_depth=args.use_depth, include_rgb=args.use_rgb)
+                          include_stiffness=args.use_stiffness, include_depth=args.use_depth, include_rgb=args.use_rgb)
     val_data = torch.utils.data.DataLoader(
         val_dataset,
         batch_size=1,
@@ -221,7 +221,7 @@ def run():
 
     # Load the network
     logging.info('Loading Network...')
-    input_channels = 1*args.use_depth + 3*args.use_rgb
+    input_channels = 1*args.use_depth + 1*args.use_stiffness + 3*args.use_rgb
     ggcnn = get_network(args.network)
 
     net = ggcnn(input_channels=input_channels)
