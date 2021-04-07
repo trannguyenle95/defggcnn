@@ -21,13 +21,15 @@ def parse_args():
     parser.add_argument('--dataset-path', type=str, help='Path to dataset')
     parser.add_argument('--use-depth', type=int, default=1, help='Use Depth image for evaluation (1/0)')
     parser.add_argument('--use-rgb', type=int, default=0, help='Use RGB image for evaluation (0/1)')
+    parser.add_argument('--use-stiffness', type=int, default=1, help='Use Stiffness image for training (1/0)')
+
     parser.add_argument('--augment', action='store_true', help='Whether data augmentation should be applied')
     parser.add_argument('--split', type=float, default=0.9, help='Fraction of data for training (remainder is validation)')
     parser.add_argument('--ds-rotate', type=float, default=0.0,
                         help='Shift the start point of the dataset to use a different test/train split')
     parser.add_argument('--num-workers', type=int, default=8, help='Dataset workers')
 
-    parser.add_argument('--n-grasps', type=int, default=1, help='Number of grasps to consider per image')
+    parser.add_argument('--n-grasps', type=int, default=10, help='Number of grasps to consider per image')
     parser.add_argument('--iou-eval', action='store_true', help='Compute success based on IoU metric.')
     parser.add_argument('--jacquard-output', action='store_true', help='Jacquard-dataset style output')
     parser.add_argument('--vis', action='store_true', help='Visualise the network output')
@@ -54,7 +56,7 @@ if __name__ == '__main__':
     Dataset = get_dataset(args.dataset)
     test_dataset = Dataset(args.dataset_path, start=args.split, end=1.0, ds_rotate=args.ds_rotate,
                            random_rotate=args.augment, random_zoom=args.augment,
-                           include_depth=args.use_depth, include_rgb=args.use_rgb)
+                           include_stiffness=args.use_stiffness,include_depth=args.use_depth, include_rgb=args.use_rgb)
     test_data = torch.utils.data.DataLoader(
         test_dataset,
         batch_size=1,
@@ -76,7 +78,7 @@ if __name__ == '__main__':
             xc = x.to(device)
             yc = [yi.to(device) for yi in y]
             lossd = net.compute_loss(xc, yc)
-
+            print(y[0].shape)
             q_img, ang_img, width_img = post_process_output(lossd['pred']['pos'], lossd['pred']['cos'],
                                                         lossd['pred']['sin'], lossd['pred']['width'])
 
@@ -98,9 +100,9 @@ if __name__ == '__main__':
                         f.write(g.to_jacquard(scale=1024 / 300) + '\n')
 
             if args.vis:
-                evaluation.plot_output(test_data.dataset.get_rgb(didx, rot, zoom, normalise=False),
+                evaluation.plot_output(test_data.dataset.get_stiffness(didx, rot, zoom),
                                        test_data.dataset.get_depth(didx, rot, zoom), q_img,
-                                       ang_img, no_grasps=args.n_grasps, grasp_width_img=width_img)
+                                       ang_img,y[0][0,0,], no_grasps=args.n_grasps, grasp_width_img=width_img)
 
     if args.iou_eval:
         logging.info('IOU Results: %d/%d = %f' % (results['correct'],

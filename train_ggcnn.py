@@ -50,12 +50,13 @@ def parse_args():
     parser.add_argument('--outdir', type=str, default='output/models/', help='Training Output Directory')
     parser.add_argument('--logdir', type=str, default='tensorboard/', help='Log directory')
     parser.add_argument('--vis', action='store_true', help='Visualise the training process')
+    parser.add_argument('--val_vis', action='store_true', help='Visualise the validation process')
 
     args = parser.parse_args()
     return args
 
 
-def validate(net, device, val_data, batches_per_epoch):
+def validate(net, device, val_data, batches_per_epoch,val_vis=False):
     """
     Run validation.
     :param net: Network
@@ -100,10 +101,16 @@ def validate(net, device, val_data, batches_per_epoch):
                 q_out, ang_out, w_out = post_process_output(lossd['pred']['pos'], lossd['pred']['cos'],
                                                             lossd['pred']['sin'], lossd['pred']['width'])
 
+
+                if val_vis:
+                    evaluation.plot_output(val_data.dataset.get_stiffness(didx, rot, zoom_factor),
+                                        val_data.dataset.get_depth(didx, rot, zoom_factor), q_out,
+                                        ang_out, no_grasps=3, grasp_width_img=w_out)
+
                 s = evaluation.calculate_iou_match(q_out, ang_out,
                                                    val_data.dataset.get_gtbb(didx, rot, zoom_factor),
                                                    no_grasps=1,
-                                                   grasp_width=None,
+                                                   grasp_width=w_out,
                                                    )
 
                 if s:
@@ -165,8 +172,8 @@ def train(epoch, net, device, train_data, optimizer, batches_per_epoch, vis=Fals
                 imgs = []
                 n_img = min(4, x.shape[0])
                 for idx in range(n_img):
-                    imgs.extend([x[idx,].numpy().squeeze()] + [yi[idx,].numpy().squeeze() for yi in y] + [
-                        x[idx,].numpy().squeeze()] + [pc[idx,].detach().cpu().numpy().squeeze() for pc in lossd['pred'].values()])
+                    imgs.extend([x[idx,0,].numpy().squeeze()] + [x[idx,1,].numpy().squeeze()] +[yi[idx,0,].numpy().squeeze() for yi in y] \
+                        + [pc[idx,0,].detach().cpu().numpy().squeeze() for pc in lossd['pred'].values()])
                 gridshow('Display', imgs,
                          [(xc.min().item(), xc.max().item()), (0.0, 1.0), (0.0, 1.0), (-1.0, 1.0), (0.0, 1.0)] * 2 * n_img,
                          [cv2.COLORMAP_BONE] * 10 * n_img, 10)
@@ -221,7 +228,10 @@ def run():
 
     # Load the network
     logging.info('Loading Network...')
-    input_channels = 1*args.use_depth + 1*args.use_stiffness + 3*args.use_rgb
+    if args.dataset == "softnet":
+        input_channels = 1*args.use_depth + 1*args.use_stiffness + 3*args.use_rgb
+    else:
+        input_channels = 1*args.use_depth + 3*args.use_rgb
     ggcnn = get_network(args.network)
 
     net = ggcnn(input_channels=input_channels)

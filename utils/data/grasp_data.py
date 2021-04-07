@@ -55,7 +55,8 @@ class GraspDatasetBase(torch.utils.data.Dataset):
 
     def __getitem__(self, idx):
         if self.random_rotate:
-            rotations = [0, np.pi/2, 2*np.pi/2, 3*np.pi/2]
+            # rotations = [0, np.pi/4, np.pi/2, 2*np.pi/2, 3*np.pi/2]
+            rotations = [0, np.pi/4, 2*np.pi/4, 3*np.pi/4, 4*np.pi/4]
             rot = random.choice(rotations)
         else:
             rot = 0.0

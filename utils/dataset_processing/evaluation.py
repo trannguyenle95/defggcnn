@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 from .grasp import GraspRectangles, detect_grasps
 
 
-def plot_output(rgb_img, depth_img, grasp_q_img, grasp_angle_img, no_grasps=1, grasp_width_img=None):
+def plot_output(rgb_img, depth_img, grasp_q_img, grasp_angle_img, ground_truth_grasp,no_grasps=1, grasp_width_img=None):
     """
     Plot the output of a GG-CNN
     :param rgb_img: RGB Image
@@ -19,17 +19,22 @@ def plot_output(rgb_img, depth_img, grasp_q_img, grasp_angle_img, no_grasps=1, g
 
     fig = plt.figure(figsize=(10, 10))
     ax = fig.add_subplot(2, 2, 1)
-    ax.imshow(rgb_img)
+    ax.imshow(rgb_img,cmap='gray')
     for g in gs:
         g.plot(ax)
-    ax.set_title('RGB')
+    ax.set_title('Stiffness')
     ax.axis('off')
 
+    # ax = fig.add_subplot(2, 2, 2)
+    # ax.imshow(depth_img, cmap='gray')
+    # for g in gs:
+    #     g.plot(ax)
+    # ax.set_title('Depth')
+    # ax.axis('off')
+
     ax = fig.add_subplot(2, 2, 2)
-    ax.imshow(depth_img, cmap='gray')
-    for g in gs:
-        g.plot(ax)
-    ax.set_title('Depth')
+    ax.imshow(ground_truth_grasp,cmap='gray')
+    ax.set_title('Ground truth')
     ax.axis('off')
 
     ax = fig.add_subplot(2, 2, 3)
