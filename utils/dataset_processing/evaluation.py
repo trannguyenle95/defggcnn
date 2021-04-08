@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 from .grasp import GraspRectangles, detect_grasps
 
 
-def plot_output(rgb_img, depth_img, grasp_q_img, grasp_angle_img, ground_truth_grasp,no_grasps=1, grasp_width_img=None):
+def plot_output(stiffness_img, depth_img, grasp_q_img, grasp_angle_img, ground_truth_grasp,no_grasps=1, grasp_width_img=None):
     """
     Plot the output of a GG-CNN
     :param rgb_img: RGB Image
@@ -19,7 +19,7 @@ def plot_output(rgb_img, depth_img, grasp_q_img, grasp_angle_img, ground_truth_g
 
     fig = plt.figure(figsize=(10, 10))
     ax = fig.add_subplot(2, 2, 1)
-    ax.imshow(rgb_img,cmap='gray')
+    ax.imshow(stiffness_img,cmap='gray',vmin=0, vmax=1)
     for g in gs:
         g.plot(ax)
     ax.set_title('Stiffness')

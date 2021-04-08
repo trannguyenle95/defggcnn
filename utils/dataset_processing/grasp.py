@@ -106,9 +106,9 @@ class GraspRectangles:
                 try:
                     gr = np.array([
                         _gr_text_to_no(p0),
-                        _gr_text_to_no(p1),
-                        _gr_text_to_no(p2),
-                        _gr_text_to_no(p3)
+                        _gr_text_to_no(p2), #Softdata 0 2 1 3  left right
+                        _gr_text_to_no(p3), 
+                        _gr_text_to_no(p1)
                     ])
                     grs.append(GraspRectangle(gr))
                 except ValueError:
@@ -239,8 +239,9 @@ class GraspRectangle:
         """
         :return: Angle of the grasp to the horizontal.
         """
-        dx = self.points[1, 1] - self.points[0, 1]
+        dx = self.points[1, 1] - self.points[0, 1] 
         dy = self.points[1, 0] - self.points[0, 0]
+        # print(np.degrees((np.arctan2(-dy, dx) + np.pi/2) % np.pi - np.pi/2))
         return (np.arctan2(-dy, dx) + np.pi/2) % np.pi - np.pi/2
 
     @property
@@ -287,8 +288,7 @@ class GraspRectangle:
         :param shape: Output shape
         :return: Indices of pixels within the centre thrid of the grasp rectangle.
         """
-        return Grasp(self.center, self.angle, self.length, self.width/3).as_gr.polygon_coords(shape)
-        #Original is length/3
+        return Grasp(self.center, self.angle, self.length/3, self.width).as_gr.polygon_coords(shape)
     def iou(self, gr, angle_threshold=np.pi/6):
         """
         Compute IoU with another grasping rectangle

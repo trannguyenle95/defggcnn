@@ -64,6 +64,7 @@ class SoftNetDataset(GraspDatasetBase):
         
     def get_stiffness(self, idx, rot=0, zoom=1.0):
         stiffness_img = image.Image.from_file(self.stiffness_files[idx])
+        # print(self.stiffness_files[idx])
         center, left, top = self._get_crop_attrs(idx)
         stiffness_img.rotate(rot, center)
         stiffness_img.crop((top, left), (min(300, top + self.output_size), min(300, left + self.output_size)))

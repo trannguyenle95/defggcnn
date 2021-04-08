@@ -24,7 +24,7 @@ def parse_args():
     parser.add_argument('--use-stiffness', type=int, default=1, help='Use Stiffness image for training (1/0)')
 
     parser.add_argument('--augment', action='store_true', help='Whether data augmentation should be applied')
-    parser.add_argument('--split', type=float, default=0.9, help='Fraction of data for training (remainder is validation)')
+    parser.add_argument('--split', type=float, default=0.1, help='Fraction of data for training (remainder is validation)')
     parser.add_argument('--ds-rotate', type=float, default=0.0,
                         help='Shift the start point of the dataset to use a different test/train split')
     parser.add_argument('--num-workers', type=int, default=8, help='Dataset workers')
