@@ -29,7 +29,7 @@ def parse_args():
                         help='Shift the start point of the dataset to use a different test/train split')
     parser.add_argument('--num-workers', type=int, default=8, help='Dataset workers')
 
-    parser.add_argument('--n-grasps', type=int, default=10, help='Number of grasps to consider per image')
+    parser.add_argument('--n-grasps', type=int, default=5, help='Number of grasps to consider per image')
     parser.add_argument('--iou-eval', action='store_true', help='Compute success based on IoU metric.')
     parser.add_argument('--jacquard-output', action='store_true', help='Jacquard-dataset style output')
     parser.add_argument('--vis', action='store_true', help='Visualise the network output')
@@ -101,7 +101,7 @@ if __name__ == '__main__':
 
             if args.vis:
                 evaluation.plot_output(test_data.dataset.get_stiffness(didx, rot, zoom),
-                                       test_data.dataset.get_depth(didx, rot, zoom), q_img,
+                                       test_data.dataset.get_depth(didx, rot, zoom), q_img, width_img,
                                        ang_img,y[0][0,0,], no_grasps=args.n_grasps, grasp_width_img=width_img)
 
     if args.iou_eval:

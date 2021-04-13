@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 from .grasp import GraspRectangles, detect_grasps
 
 
-def plot_output(stiffness_img, depth_img, grasp_q_img, grasp_angle_img, ground_truth_grasp,no_grasps=1, grasp_width_img=None):
+def plot_output(stiffness_img, depth_img, grasp_q_img, grasp_width_im, grasp_angle_img, ground_truth_grasp,no_grasps=1, grasp_width_img=None):
     """
     Plot the output of a GG-CNN
     :param rgb_img: RGB Image
@@ -16,34 +16,41 @@ def plot_output(stiffness_img, depth_img, grasp_q_img, grasp_angle_img, ground_t
     :return:
     """
     gs = detect_grasps(grasp_q_img, grasp_angle_img, width_img=grasp_width_img, no_grasps=no_grasps)
+    
+    fig = plt.figure(figsize=(15, 15))
+    ax = fig.add_subplot(2, 3, 1)
+    ax.imshow(depth_img, cmap='gray')
+    for g in gs:
+        g.plot(ax)
+    ax.set_title('Depth')
+    ax.axis('off')
 
-    fig = plt.figure(figsize=(10, 10))
-    ax = fig.add_subplot(2, 2, 1)
+    ax = fig.add_subplot(2, 3, 2)
     ax.imshow(stiffness_img,cmap='gray',vmin=0, vmax=1)
     for g in gs:
         g.plot(ax)
     ax.set_title('Stiffness')
     ax.axis('off')
 
-    # ax = fig.add_subplot(2, 2, 2)
-    # ax.imshow(depth_img, cmap='gray')
-    # for g in gs:
-    #     g.plot(ax)
-    # ax.set_title('Depth')
-    # ax.axis('off')
+    if ground_truth_grasp != None:
+        ax = fig.add_subplot(2, 3, 3)
+        ax.imshow(ground_truth_grasp,cmap='gray')
+        ax.set_title('Ground truth')
+        ax.axis('off')
 
-    ax = fig.add_subplot(2, 2, 2)
-    ax.imshow(ground_truth_grasp,cmap='gray')
-    ax.set_title('Ground truth')
-    ax.axis('off')
-
-    ax = fig.add_subplot(2, 2, 3)
+    ax = fig.add_subplot(2, 3, 4)
     plot = ax.imshow(grasp_q_img, cmap='jet', vmin=0, vmax=1)
     ax.set_title('Q')
     ax.axis('off')
     plt.colorbar(plot)
 
-    ax = fig.add_subplot(2, 2, 4)
+    ax = fig.add_subplot(2, 3, 5)
+    plot = ax.imshow(grasp_width_im, cmap='jet', vmin=0, vmax=150)
+    ax.set_title('Width')
+    ax.axis('off')
+    plt.colorbar(plot)
+
+    ax = fig.add_subplot(2, 3, 6)
     plot = ax.imshow(grasp_angle_img, cmap='hsv', vmin=-np.pi / 2, vmax=np.pi / 2)
     ax.set_title('Angle')
     ax.axis('off')
