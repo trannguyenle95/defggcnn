@@ -26,11 +26,13 @@ def plot_output(stiffness_img, depth_img, grasp_q_img, grasp_width_im, grasp_ang
     ax.axis('off')
 
     ax = fig.add_subplot(2, 3, 2)
-    ax.imshow(stiffness_img,cmap='gray',vmin=0, vmax=1)
+    plot = ax.imshow(stiffness_img, cmap='jet', vmin=0, vmax=1)
     for g in gs:
         g.plot(ax)
     ax.set_title('Stiffness')
     ax.axis('off')
+    plt.colorbar(plot)
+
 
     if ground_truth_grasp != None:
         ax = fig.add_subplot(2, 3, 3)

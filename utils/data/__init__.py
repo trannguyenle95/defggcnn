@@ -8,5 +8,8 @@ def get_dataset(dataset_name):
     elif dataset_name == 'softnet':
         from .softnet_data import SoftNetDataset
         return SoftNetDataset
+    elif dataset_name == 'softnettest':
+        from .softnet_test_data import SoftNetTestDataset
+        return SoftNetTestDataset
     else:
         raise NotImplementedError('Dataset Type {} is Not implemented'.format(dataset_name))
