@@ -6,6 +6,8 @@ import torch.utils.data
 from models.common import post_process_output
 from utils.dataset_processing import evaluation, grasp
 from utils.data import get_dataset
+import pandas as pd
+import numpy as np
 
 logging.basicConfig(level=logging.INFO)
 
@@ -32,6 +34,8 @@ def parse_args():
     parser.add_argument('--n-grasps', type=int, default=1, help='Number of grasps to consider per image')
     parser.add_argument('--iou-eval', action='store_true', help='Compute success based on IoU metric.')
     parser.add_argument('--jacquard-output', action='store_true', help='Jacquard-dataset style output')
+    parser.add_argument('--write2isaac', action='store_true', help='Jacquard-dataset style output')
+
     parser.add_argument('--vis', action='store_true', help='Visualise the network output')
     parser.add_argument('--predict', action='store_true', help='Predict output')
 
@@ -47,7 +51,6 @@ def parse_args():
 
 if __name__ == '__main__':
     args = parse_args()
-
     # Load Network
     net = torch.load(args.network)
     device = torch.device("cuda:0")
@@ -72,9 +75,30 @@ if __name__ == '__main__':
         jo_fn = args.network + '_jacquard_output.txt'
         with open(jo_fn, 'w') as f:
             pass
-    
+ 
     with torch.no_grad():
         if args.dataset == "softnettest":
+            df = pd.DataFrame({"name":["asd"],
+            "center_j1":[0],
+            "center_i1":[0],
+            "angle1":[0],
+            "center_3d1":["0,0,0"],
+            "center_j2":[0],
+            "center_i2":[0],
+            "angle2":[0],
+            "center_3d2":["0,0,0"],
+            "center_j3":[0],
+            "center_i3":[0],
+            "angle3":[0],
+            "center_3d3":["0,0,0"],
+            "center_j4":[0],
+            "center_i4":[0],
+            "angle4":[0],
+            "center_3d4":["0,0,0"],
+            "center_j5":[0],
+            "center_i5":[0],
+            "angle5":[0],
+            "center_3d5":["0,0,0"]})
             for idx, (x, didx, rot, zoom) in enumerate(test_data):
                 logging.info('Processing {}/{}'.format(idx+1, len(test_data)))
                 xc = x.to(device)
@@ -82,12 +106,51 @@ if __name__ == '__main__':
                 lossd = net.compute_loss(xc, yc)
                 q_img, ang_img, width_img = post_process_output(lossd['pred']['pos'], lossd['pred']['cos'],
                                                         lossd['pred']['sin'], lossd['pred']['width'])
-
+                print(test_data.dataset.get_name(didx))
                 if args.vis:
                     evaluation.plot_output(test_data.dataset.get_stiffness(didx, rot, zoom),
                                         test_data.dataset.get_depth(didx, rot, zoom), q_img, width_img,
                                         ang_img,None, no_grasps=args.n_grasps, grasp_width_img=width_img)
-        else:
+                if args.write2isaac:
+                    gs = []
+                    grasps = grasp.detect_grasps(q_img, ang_img, width_img=width_img, no_grasps=args.n_grasps)
+                    for g in grasps:
+                        gs.append(g)
+                    if len(gs) == 5:
+                        df2 = pd.DataFrame({"name":[test_data.dataset.get_name(didx)],
+                        "center_j1":[gs[0].center[0]],
+                        "center_i1":[gs[0].center[1]],
+                        "angle1":[np.degrees(gs[0].angle)],
+                        "center_j2":[gs[1].center[0]],
+                        "center_i2":[gs[1].center[1]],
+                        "angle2":[np.degrees(gs[1].angle)],
+                        "center_j3":[gs[2].center[0]],
+                        "center_i3":[gs[2].center[1]],
+                        "angle3":[np.degrees(gs[2].angle)],
+                        "center_j4":[gs[3].center[0]],
+                        "center_i4":[gs[3].center[1]],
+                        "angle4":[np.degrees(gs[3].angle)],
+                        "center_j5":[gs[4].center[0]],
+                        "center_i5":[gs[4].center[1]],
+                        "angle5":[np.degrees(gs[4].angle)],
+                        })
+                        df = df.append(df2,ignore_index=True)  
+                    else:
+                        df2 = pd.DataFrame({"name":[test_data.dataset.get_name(didx)],
+                        "center_j1":[gs[0].center[0]],
+                        "center_i1":[gs[0].center[1]],
+                        "angle1":[np.degrees(gs[0].angle)],
+                        "center_j2":[gs[1].center[0]],
+                        "center_i2":[gs[1].center[1]],
+                        "angle2":[np.degrees(gs[1].angle)],
+                        "center_j3":[gs[2].center[0]],
+                        "center_i3":[gs[2].center[1]],
+                        "angle3":[np.degrees(gs[2].angle)]
+                        })
+                        df = df.append(df2,ignore_index=True)  
+                    df.to_csv("best_grasp_egad.csv")
+
+        else:   
             for idx, (x, y, didx, rot, zoom) in enumerate(test_data):
                 logging.info('Processing {}/{}'.format(idx+1, len(test_data)))
                 xc = x.to(device)

@@ -82,3 +82,8 @@ class SoftNetTestDataset(TestDatasetBase):
             rgb_img.normalise()
             rgb_img.img = rgb_img.img.transpose((2, 0, 1))
         return rgb_img.img
+
+    def get_name(self,idx):
+        name = self.stiffness_files[idx].replace('s.png','')
+        object_name_stiffness = name[21:] #remove path
+        return object_name_stiffness

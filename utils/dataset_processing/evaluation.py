@@ -1,5 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
+import pandas as pd
 
 from .grasp import GraspRectangles, detect_grasps
 
@@ -15,13 +16,19 @@ def plot_output(stiffness_img, depth_img, grasp_q_img, grasp_width_im, grasp_ang
     :param grasp_width_img: (optional) Width output of GG-CNN
     :return:
     """
+    # df = pd.read_csv("best_grasp.csv", index_col=0)
+    # for label, row in df.iterrows():
+    #     print(label)
+    #     print(row)
+
     gs = detect_grasps(grasp_q_img, grasp_angle_img, width_img=grasp_width_img, no_grasps=no_grasps)
-    
+
     fig = plt.figure(figsize=(15, 15))
     ax = fig.add_subplot(2, 3, 1)
     ax.imshow(depth_img, cmap='gray')
     for g in gs:
         g.plot(ax)
+
     ax.set_title('Depth')
     ax.axis('off')
 

@@ -35,7 +35,7 @@ def parse_args():
     parser.add_argument('--use-stiffness', type=int, default=1, help='Use Stiffness image for training (1/0)')
     parser.add_argument('--use-depth', type=int, default=1, help='Use Depth image for training (1/0)')
     parser.add_argument('--use-rgb', type=int, default=0, help='Use RGB image for training (0/1)')
-    parser.add_argument('--split', type=float, default=0.95, help='Fraction of data for training (remainder is validation)')
+    parser.add_argument('--split', type=float, default=0.85, help='Fraction of data for training (remainder is validation)')
     parser.add_argument('--ds-rotate', type=float, default=0.0,
                         help='Shift the start point of the dataset to use a different test/train split for cross validation.')
     parser.add_argument('--num-workers', type=int, default=8, help='Dataset workers')
@@ -77,7 +77,6 @@ def validate(net, device, val_data, batches_per_epoch,val_vis=False):
     }
 
     ld = len(val_data)
-
     with torch.no_grad():
         batch_idx = 0
         while batch_idx < batches_per_epoch:
@@ -91,12 +90,11 @@ def validate(net, device, val_data, batches_per_epoch,val_vis=False):
                 lossd = net.compute_loss(xc, yc)
 
                 loss = lossd['loss']
-
-                results['loss'] += loss.item()/ld
+                results['loss'] += loss.item()/batch_idx
                 for ln, l in lossd['losses'].items():
                     if ln not in results['losses']:
                         results['losses'][ln] = 0
-                    results['losses'][ln] += l.item()/ld
+                    results['losses'][ln] += l.item()/batch_idx
 
                 q_out, ang_out, w_out = post_process_output(lossd['pred']['pos'], lossd['pred']['cos'],
                                                             lossd['pred']['sin'], lossd['pred']['width'])
