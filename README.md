@@ -29,9 +29,3 @@ This code was developed with Python 3.6 on Ubuntu 16.04.  Python requirements ca
 ```bash
 pip install -r requirements.txt
 ```
-
-## Running on a Robot
-
-Our ROS implementation for running the grasping system see [https://github.com/dougsm/mvp_grasp](https://github.com/dougsm/mvp_grasp).
-
-The original implementation for running experiments on a Kinva Mico arm can be found in the repository [https://github.com/dougsm/ggcnn_kinova_grasping](https://github.com/dougsm/ggcnn_kinova_grasping).
